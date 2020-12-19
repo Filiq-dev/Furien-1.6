@@ -14,7 +14,7 @@
 
 #define PLUGIN_NAME "Furien Mod"
 #define PLUGIN_AUTHOR "Filiq_"
-#define PLUGIN_VERSION "0.0.4"
+#define PLUGIN_VERSION "0.0.5"
 
 #define AF_TEAM CS_TEAM_CT
 #define F_TEAM CS_TEAM_T
@@ -31,7 +31,8 @@ enum eCvarsSettings {
     cFurienGravity,
     cFurienSpeed,
     cRemoveBuyZone,
-    cFreezeBots
+    cFreezeBots,
+    cGameDescription
 }
 
 new 
@@ -56,6 +57,9 @@ public plugin_init() {
     fCvars[cFurienGravity] = register_cvar("furien_gravity", "0.374")
     fCvars[cFurienSpeed] = register_cvar("furien_speed", "700.0")
     fCvars[cFreezeBots] = register_cvar("furien_freeze_bots", "1")
+    fCvars[cGameDescription] = register_cvar("furien_gamedescription", "Furien NewSchool")
+
+    register_forward(FM_GetGameDescription, "GameDescription")
 
     register_logevent("Round_Start", 2, "1=Round_Start")
     register_logevent("Round_End", 2, "1=Round_End")
@@ -102,6 +106,18 @@ public plugin_precache() {
         DispatchKeyValue(Ent, "buying", "3")
         DispatchSpawn(Ent)
     }
+}
+
+public GameDescription() {
+    new 
+        gamedesc[50]
+    
+    get_pcvar_string(fCvars[cGameDescription], gamedesc, charsmax(gamedesc))
+    formatex(gamedesc, charsmax(gamedesc), "%s%s", gamedesc, PLUGIN_VERSION)
+    
+    forward_return(FMV_STRING, gamedesc)
+
+    return FMRES_SUPERCEDE
 }
 
 public Round_Start() {
