@@ -13,25 +13,35 @@
 
 #define PLUGIN_NAME "Furien Mod"
 #define PLUGIN_AUTHOR "Filiq_"
-#define PLUGIN_VERSION "0.0.3"
+#define PLUGIN_VERSION "0.0.4"
 
 #define AF_TEAM CS_TEAM_CT
 #define F_TEAM CS_TEAM_T
+
+#if cellbits == 32
+    #define OFFSET_BZ 235
+#else
+    #define OFFSET_BZ 268
+#endif
 
 enum eCvarsSettings {
     cTeamSwitch,
     cAutoTeamSwitch,
     cFurienGravity,
-    cFurienSpeed 
+    cFurienSpeed,
+    cRemoveBuyZone,
+    cFreezeBots
 }
 
 new 
     fCvars[eCvarsSettings],
     FurienRoundsCount = 0,
-    gEnt
+    gEnt,
+    MSGID_StatusIcon
 
 new 
     Float:tTime
+
 
 public plugin_init() {
     register_plugin(PLUGIN_NAME, PLUGIN_VERSION, PLUGIN_AUTHOR)
@@ -40,6 +50,8 @@ public plugin_init() {
     fCvars[cAutoTeamSwitch] = register_cvar("furien_auto_fteam_switch", "3")
     fCvars[cFurienGravity] = register_cvar("furien_gravity", "0.374")
     fCvars[cFurienSpeed] = register_cvar("furien_speed", "700.0")
+    fCvars[cRemoveBuyZone] = register_cvar("furien_remove_buyzone", "1")
+    fCvars[cFreezeBots] = register_cvar("furien_freeze_bots", "1")
 
     register_logevent("Round_Start", 2, "1=Round_Start")
     register_logevent("Round_End", 2, "1=Round_End")
@@ -51,6 +63,9 @@ public plugin_init() {
 
     RegisterHam(Ham_Spawn, "player", "Client_Spawn_Post", true)
     RegisterHam(Ham_Item_PreFrame, "player", "Client_MaxSpeed_Post", true)
+    RegisterHam(Ham_Touch, "weaponbox", "TouchWeapon")
+    RegisterHam(Ham_Touch, "armoury_entity", "TouchWeapon")
+    RegisterHam(Ham_Touch, "weapon_shield", "TouchWeapon")
 
     gEnt = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_target"))
 
@@ -62,6 +77,22 @@ public plugin_init() {
         register_think("invisibility", "think_Invisibility")
     } 
     else set_task(0.1, "think_Invisibility", .flags="b")
+
+    MSGID_StatusIcon = get_user_msgid("StatusIcon")
+
+    register_message(MSGID_StatusIcon, "MSG_StatusIcon")
+}
+
+public plugin_precache() {
+    if(get_pcvar_num(fCvars[cRemoveBuyZone])) {
+        remove_entity_name("info_map_parameters")
+        remove_entity_name("func_buyzone")
+
+        new Ent = create_entity("info_map_parameters")
+
+        DispatchKeyValue(Ent, "buying", "3")
+        DispatchSpawn(Ent)
+    }
 }
 
 public Round_Start() {
@@ -113,7 +144,7 @@ public Client_Spawn_Post(client) {
     if(!is_user_alive(client))
         return
 
-    if(is_user_bot(client))
+    if(get_pcvar_num(fCvars[cFreezeBots]) && is_user_bot(client))
         set_pev(client, pev_flags, pev(client, pev_flags) | FL_FROZEN)
 
     set_user_rendering(client, kRenderFxNone, 0, 0, 0, kRenderNormal, 0)
@@ -183,6 +214,28 @@ public think_Invisibility(Ent) {
     }
 
     return FMRES_IGNORED
+}
+
+public TouchWeapon(Ent, client) {
+    if(is_user_alive(client) && cs_get_user_team(client) == F_TEAM && !(get_pdata_cbase(Ent, 39, 4) > 0))
+        return HAM_SUPERCEDE
+
+    return HAM_IGNORED
+}
+
+public MSG_StatusIcon(msg_id, msg_dest, client) {
+    if(get_pcvar_num(fCvars[cRemoveBuyZone])) {
+        new icon[8]
+        get_msg_arg_string(2, icon, charsmax(icon))
+
+        if(equal(icon, "buyzone")) {
+            set_pdata_int(client, OFFSET_BZ, get_pdata_int(client, OFFSET_BZ, 5) & ~(1 << 0), 5)
+
+            return PLUGIN_HANDLED
+        }
+    }
+
+    return PLUGIN_CONTINUE
 }
 
 Float:fm_get_user_speed(client) {
