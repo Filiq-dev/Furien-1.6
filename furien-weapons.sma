@@ -115,7 +115,13 @@ public Handler_Primary(client, menu, item) {
     if(HasWeapon[client] == true) 
         return true
 
-    client_print(client, print_chat, "ai primit")
+    if(AntiFurienPWeapons[item][iPWeaponCost] > GetPlayerMoney(client)) {
+        OpenWeaponsMenu(client)
+
+        client_print(client, print_chat, "Ai nevoie de: %d$", AntiFurienPWeapons[item][iPWeaponCost])
+
+        return true
+    } else if(AntiFurienPWeapons[item][iPWeaponCost] != 0) SetPlayerMoney(client, GetPlayerMoney(client) - AntiFurienPWeapons[item][iPWeaponCost])
 
     HasWeapon[client] = true
     SecondaryMenu(client)
@@ -125,9 +131,18 @@ public Handler_Primary(client, menu, item) {
 
     return true
 }
+
 public Handler_Secondary(client, menu, item) {
     if(!is_user_alive(client) || cs_get_user_team(client) != AF_TEAM)
         return true
+
+    if(AntiFurienSWeapons[item][iSWeaponCost] > GetPlayerMoney(client)) {
+        SecondaryMenu(client)
+
+        client_print(client, print_chat, "Ai nevoie de: %d$ Tu ai: %d", AntiFurienSWeapons[item][iSWeaponCost], GetPlayerMoney(client))
+
+        return true
+    } else if(AntiFurienSWeapons[item][iSWeaponCost] != 0) SetPlayerMoney(client, GetPlayerMoney(client) - AntiFurienSWeapons[item][iSWeaponCost])
 
     give_item(client, AntiFurienSWeapons[item][szSWeaponIndex])
     cs_set_user_bpammo(client, AntiFurienSWeapons[item][szSWeaponType], AntiFurienSWeapons[item][iSWeaponBpAmmo])

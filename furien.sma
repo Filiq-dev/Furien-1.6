@@ -44,7 +44,9 @@ new
     Float:tTime
 
 new 
-    FurienSpawnSet
+    FurienSpawnSet,
+    FurienWin,
+    AFWin
 
 public plugin_init() {
     register_plugin(PLUGIN_NAME, PLUGIN_VERSION, PLUGIN_AUTHOR)
@@ -85,6 +87,8 @@ public plugin_init() {
     register_message(MSGID_StatusIcon, "MSG_StatusIcon")
 
     FurienSpawnSet = CreateMultiForward("Furien_Spawn_Set", ET_IGNORE, FP_CELL)
+    FurienWin = CreateMultiForward("Furien_Win", ET_IGNORE, ET_IGNORE)
+    AFWin = CreateMultiForward("AFurien_Win", ET_IGNORE, ET_IGNORE)
 }
 
 public plugin_precache() {
@@ -124,6 +128,9 @@ public RoundWin_AF() {
     }
 
     FurienRoundsCount = 0
+
+    new ret
+    ExecuteForward(AFWin, ret)
 }
 
 public RoundWin_F() {
@@ -143,6 +150,9 @@ public RoundWin_F() {
         }
         FurienRoundsCount = 0
     }
+    
+    new ret
+    ExecuteForward(FurienWin, ret)
 }
 
 public Client_Spawn_Post(client) {
