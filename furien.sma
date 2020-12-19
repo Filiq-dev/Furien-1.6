@@ -1,4 +1,5 @@
 #include <amxmodx>
+#include <amxconst>
 #include <cstrike>
 #include <hamsandwich>
 #include <fakemeta>
@@ -42,6 +43,8 @@ new
 new 
     Float:tTime
 
+new 
+    FurienSpawnSet
 
 public plugin_init() {
     register_plugin(PLUGIN_NAME, PLUGIN_VERSION, PLUGIN_AUTHOR)
@@ -80,6 +83,8 @@ public plugin_init() {
     MSGID_StatusIcon = get_user_msgid("StatusIcon")
 
     register_message(MSGID_StatusIcon, "MSG_StatusIcon")
+
+    FurienSpawnSet = CreateMultiForward("Furien_Spawn_Set", ET_IGNORE, FP_CELL)
 }
 
 public plugin_precache() {
@@ -164,6 +169,9 @@ public Client_Spawn_Post(client) {
 
         }
     }
+
+    new ret
+    ExecuteForward(FurienSpawnSet, ret, client)
 }
 
 public Client_MaxSpeed_Post(client) {
