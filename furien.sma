@@ -50,7 +50,6 @@ public plugin_init() {
     fCvars[cAutoTeamSwitch] = register_cvar("furien_auto_fteam_switch", "3")
     fCvars[cFurienGravity] = register_cvar("furien_gravity", "0.374")
     fCvars[cFurienSpeed] = register_cvar("furien_speed", "700.0")
-    fCvars[cRemoveBuyZone] = register_cvar("furien_remove_buyzone", "1")
     fCvars[cFreezeBots] = register_cvar("furien_freeze_bots", "1")
 
     register_logevent("Round_Start", 2, "1=Round_Start")
@@ -84,6 +83,7 @@ public plugin_init() {
 }
 
 public plugin_precache() {
+    fCvars[cRemoveBuyZone] = register_cvar("furien_remove_buyzone", "1")
     if(get_pcvar_num(fCvars[cRemoveBuyZone])) {
         remove_entity_name("info_map_parameters")
         remove_entity_name("func_buyzone")
